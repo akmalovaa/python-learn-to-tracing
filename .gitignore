@@ -1,0 +1,17 @@
+# Generic things
+*.pyc
+*~
+temp/
+__pycache__
+.vscode
+.idea
+.DS_Store
+.env
+.mypy_cache
+.pytest_cache
+.coverage
+coverage.xml
+pytest.xml
+.python-version
+.venv
+temp
