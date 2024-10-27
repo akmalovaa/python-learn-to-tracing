@@ -1,6 +1,6 @@
 # Python tracing
 
-To understand Tracing: OpenTelemetry + Grafana + Tempo
+To understand Tracing: Python > OpenTelemetry > Tempo > Grafana
 
 ### Useful materials
 **main:**
