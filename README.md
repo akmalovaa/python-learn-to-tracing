@@ -1,2 +1,3 @@
-# python-learn-to-tracing
+# Python learn to tracing
+
 Understanding Tracing: Python OpenTelemetry and Grafana Tempo
