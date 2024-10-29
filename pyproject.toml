@@ -1,16 +1,22 @@
 [tool.poetry]
 name = "python-learn-to-tracing"
+package-mode = false
 version = "0.1.0"
 description = ""
 authors = ["Artur Akmalov <artur@akmalov.com>"]
 readme = "README.md"
 packages = [{include = "python_learn_to_tracing"}]
 
+
 [tool.poetry.dependencies]
 python = "^3.11"
 fastapi = "^0.115.3"
 uvicorn = "^0.32.0"
 loguru = "^0.7.2"
+httpx = "^0.27.2"
+opentelemetry-instrumentation-fastapi = "^0.48b0"
+opentelemetry-distro = "^0.48b0"
+opentelemetry-exporter-otlp = "^1.27.0"
 
 
 [build-system]
