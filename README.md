@@ -2,6 +2,8 @@
 
 To understand Tracing: Python > OpenTelemetry > Tempo > Grafana
 
+![scheme](./images/scheme.excalidraw.png)
+
 ### Useful materials
 **main:**
 - https://github.com/open-telemetry/opentelemetry-collector
