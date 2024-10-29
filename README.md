@@ -1,6 +1,6 @@
 # Python tracing
 
-repository for experiments to understand tracing: 
+Repository for experiments to understand tracing: 
 - Python 
 - OpenTelemetry 
 - Tempo 
