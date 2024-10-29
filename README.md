@@ -1,6 +1,11 @@
 # Python tracing
 
-To understand Tracing: Python > OpenTelemetry > Tempo > Grafana
+To understand Tracing: 
+- Python 
+- OpenTelemetry 
+- Tempo 
+- Grafana
+- Prometheus
 
 ![scheme](./images/scheme.excalidraw.png)
 
@@ -35,10 +40,12 @@ k6 run scripts/k6_fastapi_get.js
 
 ### locahost services
 
-After run docker compose
+Start
 ```
 docker compose up -d
 ```
+
+After run docker compose
 - [Python_app1](http://localhost:8000)
 - [Grafana](http://localhost:3000)
 - [Prometheus](http://localhost:9090)
