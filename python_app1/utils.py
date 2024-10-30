@@ -24,3 +24,4 @@ def setting_otlp(
     tracer.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint)))
 
     FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
+    return tracer

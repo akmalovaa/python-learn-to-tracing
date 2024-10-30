@@ -14,11 +14,10 @@ from opentelemetry.propagate import inject
 
 from python_app1.utils import setting_otlp
 from python_app1.models import tables
-from python_app1.settings import settings
 from python_app1.repository.entities import EntitiesRepository
-from python_app1.resources.database import create_sa_engine, create_session
-from logging import getLogger
+from python_app1.resources.database import database_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
+from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 
 
 APP_NAME: str = os.environ.get("APP_NAME", "app")
@@ -41,12 +40,16 @@ app = FastAPI()
 service_name = "fastapi-app"
 
 # Setting OpenTelemetry exporter
-setting_otlp(app, APP_NAME, OTLP_ENDPOINT)
+tracer = setting_otlp(app, APP_NAME, OTLP_ENDPOINT)
 
 
-logger = getLogger(__name__)
-engine = create_sa_engine(settings) 
-logger.info("ENGINE IS = ", engine)
+
+SQLAlchemyInstrumentor().instrument(
+    engine=database_engine.sync_engine,
+    tracer_provider=tracer,
+    enable_commenter=True,
+    commenter_options={},
+)
 
 class EntitiesHandler:
 
@@ -54,7 +57,7 @@ class EntitiesHandler:
         self.repository = None
 
     async def init_all(self):
-        self.repository = EntitiesRepository(engine)
+        self.repository = EntitiesRepository(database_engine)
     
     async def get_entity_by_id(self, entity_id: str) -> tables.Entity | None:
         result = await self.repository.get_entity_by_id(entity_id)
@@ -70,7 +73,7 @@ class EntitiesHandler:
         return result
     
     async def create_entity(self, name: str, description: str) -> bool:
-        async_session = async_sessionmaker(engine, expire_on_commit=False)
+        async_session = async_sessionmaker(database_engine, expire_on_commit=False)
         async with async_session() as session:
             async with session.begin():
                 session.add(tables.Entity(name=name, description=description))
@@ -170,6 +173,7 @@ async def get_entity_by_id(entity_id: str):
 async def create_entity(name: str, description: str):
     handler = EntitiesHandler()
     await handler.init_all()
+
     res = await handler.create_entity(name, description)
     return {"entity": res}
 
