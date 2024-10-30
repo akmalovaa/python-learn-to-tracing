@@ -5,6 +5,8 @@ services:
     build: .
     ports:
       - 8000:8000
+    volumes:
+      - .:/srv/
     # command: ["tail", "-f", "/dev/null"]
 
   otel-collector:
@@ -36,7 +38,7 @@ services:
   tempo:
     image: grafana/tempo:2.6.1
     container_name: tempo
-    command: [ "-config.file=/etc/tempo-local.yaml" ]
+    command: ["-config.file=/etc/tempo-local.yaml"]
     ports:
       - 3200:3200 # tempo http
       - 9095:9095 # tempo grpc
@@ -63,16 +65,21 @@ services:
   #     - 6379:6379
   #   restart: always
 
-  # postgres:
-  #   image: postgres
-  #   volumes:
-  #     - postgres-data:/var/lib/postgresql
-  #     - postgres-data:/etc/postgresql
-  #     - postgres-data:/var/log/postgresql
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     POSTGRES_PASSWORD: password
+  db:
+    restart: always
+    container_name: db
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: opg_user
+      POSTGRES_PASSWORD: opg_password
+      POSTGRES_DB: opg_db
+    volumes:
+      - prometheus:/var/lib/postgresql/data
+
+volumes:
+  prometheus: {}
 
   # zookeeper:
   #   image: confluentinc/cp-zookeeper:latest
