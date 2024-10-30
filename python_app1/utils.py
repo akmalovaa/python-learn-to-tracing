@@ -19,10 +19,6 @@ def setting_otlp(
     # set the tracer provider
     tracer = TracerProvider(resource=resource)
     trace.set_tracer_provider(tracer)
-    # test test test
-    # test test test
-    # test test test
-    # test test test
 
 
     tracer.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint)))
