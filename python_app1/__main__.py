@@ -13,6 +13,13 @@ from loguru import logger
 from opentelemetry.propagate import inject
 
 from python_app1.utils import setting_otlp
+from python_app1.models import tables
+from python_app1.settings import settings
+from python_app1.repository.entities import EntitiesRepository
+from python_app1.resources.database import create_sa_engine, create_session
+from logging import getLogger
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
 
 APP_NAME: str = os.environ.get("APP_NAME", "app")
 EXPOSE_PORT: int = int(os.environ.get("EXPOSE_PORT", 8000))
@@ -36,6 +43,40 @@ service_name = "fastapi-app"
 # Setting OpenTelemetry exporter
 setting_otlp(app, APP_NAME, OTLP_ENDPOINT)
 
+
+logger = getLogger(__name__)
+engine = create_sa_engine(settings) 
+logger.info("ENGINE IS = ", engine)
+
+class EntitiesHandler:
+
+    def __init__(self):
+        self.repository = None
+
+    async def init_all(self):
+        self.repository = EntitiesRepository(engine)
+    
+    async def get_entity_by_id(self, entity_id: str) -> tables.Entity | None:
+        result = await self.repository.get_entity_by_id(entity_id)
+        if result:
+            return {"name": result.name, "description": result.description, "id": result.id}
+        return None
+
+    async def get_all_entities(self) -> list[dict]:
+        data = await self.repository.get_all_entities()
+        result = []
+        for one_data in data:
+            result.append({"name": one_data.name, "description": one_data.description, "id": one_data.id})
+        return result
+    
+    async def create_entity(self, name: str, description: str) -> bool:
+        async_session = async_sessionmaker(engine, expire_on_commit=False)
+        async with async_session() as session:
+            async with session.begin():
+                session.add(tables.Entity(name=name, description=description))
+                await session.commit()
+        return True
+    
 
 @app.get("/")
 def root_endpoint():
@@ -108,6 +149,29 @@ async def chain(response: Response):
     #     )
     logger.info("Chain Finished")
     return {"path": "/chain"}
+
+@app.get("/entities/")
+async def get_all_entities():
+    handler = EntitiesHandler()
+    await handler.init_all()
+    entities = await handler.get_all_entities()
+    return {"entities": entities}
+
+
+@app.get("/entities/{entity_id}/")
+async def get_entity_by_id(entity_id: str):
+    handler = EntitiesHandler()
+    await handler.init_all()
+    entity = await handler.get_entity_by_id(entity_id)
+    return {"entity": entity}
+
+
+@app.post("/entities/")
+async def create_entity(name: str, description: str):
+    handler = EntitiesHandler()
+    await handler.init_all()
+    res = await handler.create_entity(name, description)
+    return {"entity": res}
 
 
 if __name__ == "__main__":
