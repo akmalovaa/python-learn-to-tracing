@@ -14,12 +14,12 @@ from opentelemetry.propagate import inject
 
 from python_app1.utils import setting_otlp
 from python_app1.models import tables
-from python_app1.repository.entities import EntitiesRepository
+from python_app1.repository.entities import EntitiesRepository, EntitiesAsyncpgRepo
 from python_app1.resources.database import database_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 
-
+import pydantic
 APP_NAME: str = os.environ.get("APP_NAME", "app")
 EXPOSE_PORT: int = int(os.environ.get("EXPOSE_PORT", 8000))
 OTLP_ENDPOINT: str = os.environ.get("OTLP_ENDPOINT", "http://otel-collector:4317")
@@ -59,8 +59,9 @@ class EntitiesHandler:
     async def init_all(self):
         self.repository = EntitiesRepository(database_engine)
     
-    async def get_entity_by_id(self, entity_id: str) -> tables.Entity | None:
+    async def get_entity_by_id(self, entity_id: str) -> dict | None:
         result = await self.repository.get_entity_by_id(entity_id)
+        print(f"\n\nAFDDADAFDF {result=}\n\n")
         if result:
             return {"name": result.name, "description": result.description, "id": result.id}
         return None
@@ -79,6 +80,34 @@ class EntitiesHandler:
                 session.add(tables.Entity(name=name, description=description))
                 await session.commit()
         return True
+    
+
+class EntitiesHandlerAsyncpg:
+    
+        def __init__(self):
+            self.repository = None
+    
+        async def init_all(self):
+            self.repository = EntitiesAsyncpgRepo()
+            await self.repository.init()
+        
+        async def get_entity_by_id(self, entity_id: str) -> dict | None:
+            result = await self.repository.get_entity_by_id(entity_id)
+            if result:
+                return {"name": result.name, "description": result.description, "id": result.id}
+            return None
+    
+        async def get_all_entities(self) -> list[dict]:
+            data = await self.repository.get_all_entities()
+            result = []
+            for one_data in data:
+                result.append({"name": one_data.name, "description": one_data.description, "id": one_data.id})
+            return result
+        
+        async def create_entity(self, name: str, description: str) -> bool:
+            result = await self.repository.create_entity(name, description)
+            print("created entity = ", result)
+            return True
     
 
 @app.get("/")
@@ -153,6 +182,12 @@ async def chain(response: Response):
     logger.info("Chain Finished")
     return {"path": "/chain"}
 
+
+class EntityCreateModel(pydantic.BaseModel):
+    name: str
+    description: str
+
+
 @app.get("/entities/")
 async def get_all_entities():
     handler = EntitiesHandler()
@@ -170,8 +205,35 @@ async def get_entity_by_id(entity_id: str):
 
 
 @app.post("/entities/")
-async def create_entity(name: str, description: str):
+async def create_entity(
+    income: EntityCreateModel
+):
     handler = EntitiesHandler()
+    await handler.init_all()
+
+    res = await handler.create_entity(income.name, income.description)
+    return {"entity": res}
+
+
+@app.get("/entities-asyncpg/")
+async def get_all_entities():
+    handler = EntitiesHandlerAsyncpg()
+    await handler.init_all()
+    entities = await handler.get_all_entities()
+    return {"entities": entities}
+
+
+@app.get("/entities-asyncpg/{entity_id}/")
+async def get_entity_by_id(entity_id: str):
+    handler = EntitiesHandlerAsyncpg()
+    await handler.init_all()
+    entity = await handler.get_entity_by_id(entity_id)
+    return {"entity": entity}
+
+
+@app.post("/entities-asyncpg/")
+async def create_entity(name: str, description: str):
+    handler = EntitiesHandlerAsyncpg()
     await handler.init_all()
 
     res = await handler.create_entity(name, description)

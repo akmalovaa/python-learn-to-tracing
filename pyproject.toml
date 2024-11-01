@@ -24,6 +24,7 @@ pydantic-settings = "^2.6.0"
 alembic = "^1.13.3"
 psycopg2-binary = "^2.9.10"
 opentelemetry-instrumentation-sqlalchemy = "^0.48b0"
+opentelemetry-instrumentation-asyncpg = "^0.48b0"
 
 
 [build-system]

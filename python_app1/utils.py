@@ -4,6 +4,8 @@ from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
+
 from starlette.types import ASGIApp
 
 
@@ -24,4 +26,5 @@ def setting_otlp(
     tracer.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=endpoint)))
 
     FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
+    AsyncPGInstrumentor().instrument(tracer_provider=tracer)
     return tracer
