@@ -18,6 +18,8 @@ from python_app1.repository.entities import EntitiesRepository, EntitiesAsyncpgR
 from python_app1.resources.database import database_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+from python_app1.repository.redis_repo import RedisRepo
+from opentelemetry.instrumentation.redis import RedisInstrumentor
 
 import pydantic
 APP_NAME: str = os.environ.get("APP_NAME", "app")
@@ -50,6 +52,8 @@ SQLAlchemyInstrumentor().instrument(
     enable_commenter=True,
     commenter_options={},
 )
+# Instrument redis
+RedisInstrumentor().instrument(tracer_provider=tracer)
 
 class EntitiesHandler:
 
@@ -238,6 +242,30 @@ async def create_entity(name: str, description: str):
 
     res = await handler.create_entity(name, description)
     return {"entity": res}
+
+
+@app.get("/redis-get/")
+async def get_redis_value():
+    handler = RedisRepo()
+
+    entity = await handler.get_value()
+    return {"entity": entity}
+
+
+@app.post("/redis-set/")
+async def set_redis_value(value: str):
+    handler = RedisRepo()
+
+    res = await handler.set_val(value)
+    return {"res": res}
+
+
+@app.post("/redis-delete/")
+async def delete_redis_value():
+    handler = RedisRepo()
+
+    res = await handler.delete_value()
+    return {"res": res}
 
 
 if __name__ == "__main__":

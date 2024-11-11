@@ -14,12 +14,15 @@ class Settings(BaseSettings):
     postgres_database: str = "opg_db"
 
     database_dsn: str = (
-        f"postgresql://{postgres_user}:{postgres_password}@{postgres_host}:{postgres_port}/{postgres_database}"
+        f"{db_driver}://{postgres_user}:{postgres_password}@{postgres_host}:{postgres_port}/{postgres_database}"
     )
     database_pool_size: int = 5
     database_max_overflow: int = 10
     database_pool_pre_ping: bool = True
     database_max_reties_count: int = 5
+
+    redis_host: str = "redis"
+    redis_port: int = 6379
 
     @property
     def db_dsn(self) -> URL:

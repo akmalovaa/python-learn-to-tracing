@@ -59,11 +59,12 @@ services:
       - 9090:9090
     volumes:
       - ./configs/prometheus/prometheus.yaml:/etc/prometheus.yaml
-  # redis:
-  #   image: redis
-  #   ports:
-  #     - 6379:6379
-  #   restart: always
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    restart: always
 
   db:
     restart: always
