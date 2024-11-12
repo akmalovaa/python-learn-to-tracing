@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     redis_host: str = "redis"
     redis_port: int = 6379
 
+    second_app_host: str = "app2"
+
     @property
     def db_dsn(self) -> URL:
         return URL.create(

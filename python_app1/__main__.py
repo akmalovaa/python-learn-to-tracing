@@ -14,6 +14,8 @@ from opentelemetry.propagate import inject
 
 from python_app1.utils import setting_otlp
 from python_app1.models import tables
+from python_app1.clients import fetch_data_service_2, update_data_service_2, call_error
+
 from python_app1.repository.entities import EntitiesRepository, EntitiesAsyncpgRepo
 from python_app1.resources.database import database_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
@@ -192,6 +194,11 @@ class EntityCreateModel(pydantic.BaseModel):
     description: str
 
 
+class SecondAppPayload(pydantic.BaseModel):
+    entity_id: str
+    value: str
+
+
 @app.get("/entities/")
 async def get_all_entities():
     handler = EntitiesHandler()
@@ -267,6 +274,28 @@ async def delete_redis_value():
     res = await handler.delete_value()
     return {"res": res}
 
+
+
+@app.get("/second-app/")
+async def fetch_second_app(
+    entity_id: int
+):
+    res = await fetch_data_service_2(entity_id=entity_id)
+    return {"res": res}
+
+
+@app.post("/second-app/")
+async def update_second_app(
+    income: SecondAppPayload
+):
+    res = await update_data_service_2(income.entity_id, income.value)
+    return {"res": res}
+
+
+@app.post("/second-app/error/")
+async def call_error_second_app():
+    res = await call_error()
+    return {"res": res}
 
 if __name__ == "__main__":
     logger.info(f"{service_name} start, listening on port 8000")

@@ -2,9 +2,21 @@ services:
   python_app1:
     # image: python:3.12.7-slim-bookworm
     container_name: app1
-    build: .
+    build:
+      dockerfile: Dockerfile_app_1
     ports:
       - 8000:8000
+    volumes:
+      - .:/srv/
+    # command: ["tail", "-f", "/dev/null"]
+
+  python_app2:
+    # image: python:3.12.7-slim-bookworm
+    container_name: app2
+    build:
+      dockerfile: Dockerfile_app_2
+    ports:
+      - 8001:8001
     volumes:
       - .:/srv/
     # command: ["tail", "-f", "/dev/null"]

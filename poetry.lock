@@ -878,6 +878,27 @@ opentelemetry-util-http = "0.49b1"
 instruments = ["fastapi (>=0.58,<1.0)"]
 
 [[package]]
+name = "opentelemetry-instrumentation-httpx"
+version = "0.49b1"
+description = "OpenTelemetry HTTPX Instrumentation"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "opentelemetry_instrumentation_httpx-0.49b1-py3-none-any.whl", hash = "sha256:7c620c6dd8e5fecddc5a8bb5f5cc1c4c758a031b13703e75cbb8e5abdd4297de"},
+    {file = "opentelemetry_instrumentation_httpx-0.49b1.tar.gz", hash = "sha256:82285093b68bf0dc89e424f4c201c9524f0d29b9ba326fb0993721e358617710"},
+]
+
+[package.dependencies]
+opentelemetry-api = ">=1.12,<2.0"
+opentelemetry-instrumentation = "0.49b1"
+opentelemetry-semantic-conventions = "0.49b1"
+opentelemetry-util-http = "0.49b1"
+wrapt = ">=1.0.0,<2.0.0"
+
+[package.extras]
+instruments = ["httpx (>=0.18.0)"]
+
+[[package]]
 name = "opentelemetry-instrumentation-redis"
 version = "0.49b1"
 description = "OpenTelemetry Redis instrumentation"
@@ -1562,4 +1583,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "bef023436843df1cda8f7a66954f83d75420ac282bb4e04eef2b8b7fa104c8b2"
+content-hash = "e00dc867fc51c73f102df8c2bfd60d5dda6bac5b3a51ff807a27df905ec3c2ab"

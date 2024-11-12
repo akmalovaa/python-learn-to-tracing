@@ -27,6 +27,7 @@ opentelemetry-instrumentation-sqlalchemy = "*"
 opentelemetry-instrumentation-asyncpg = "*"
 redis = "*"
 opentelemetry-instrumentation-redis = "^0.49b1"
+opentelemetry-instrumentation-httpx = "^0.49b1"
 
 
 [build-system]
