@@ -49,3 +49,12 @@ After run docker compose
 - [Python_app](http://localhost:8000)
 - [Grafana](http://localhost:3000)
 - [Prometheus](http://localhost:9090)
+
+test alembic migrations
+```
+uv run alembic -c otel_py_example/alembic.ini upgrade head
+
+chmod +x scripts/alembic.sh && ./scripts/alembic.sh current
+./scripts/alembic.sh upgrade head
+```
+

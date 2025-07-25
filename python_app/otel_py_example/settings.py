@@ -1,4 +1,3 @@
-
 from pydantic_settings import BaseSettings
 from sqlalchemy.engine.url import URL
 
@@ -9,7 +8,7 @@ class Settings(BaseSettings):
     db_driver: str = "postgresql+asyncpg"
     postgres_user: str = "opg_user"
     postgres_password: str = "opg_password"
-    postgres_host: str = "db"
+    postgres_host: str = "db"  # Changed from localhost to db for container
     postgres_port: int = 5432
     postgres_database: str = "opg_db"
 

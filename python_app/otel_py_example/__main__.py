@@ -17,7 +17,7 @@ from otel_py_example.models import tables
 from otel_py_example.clients import fetch_data_service_2, update_data_service_2, call_error
 
 from otel_py_example.repository.entities import EntitiesRepository, EntitiesAsyncpgRepo
-from otel_py_example.resources.database import database_engine
+from otel_py_example.resources.database import database_engine, sync_database_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from otel_py_example.repository.redis_repo import RedisRepo
@@ -49,7 +49,7 @@ tracer = setting_otlp(app, APP_NAME, OTLP_ENDPOINT)
 
 
 SQLAlchemyInstrumentor().instrument(
-    engine=database_engine.sync_engine,
+    engine=sync_database_engine,
     tracer_provider=tracer,
     enable_commenter=True,
     commenter_options={},
