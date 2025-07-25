@@ -12,18 +12,19 @@ from fastapi import FastAPI, Response
 from loguru import logger
 from opentelemetry.propagate import inject
 
-from python_app1.utils import setting_otlp
-from python_app1.models import tables
-from python_app1.clients import fetch_data_service_2, update_data_service_2, call_error
+from otel_py_example.utils import setting_otlp
+from otel_py_example.models import tables
+from otel_py_example.clients import fetch_data_service_2, update_data_service_2, call_error
 
-from python_app1.repository.entities import EntitiesRepository, EntitiesAsyncpgRepo
-from python_app1.resources.database import database_engine
+from otel_py_example.repository.entities import EntitiesRepository, EntitiesAsyncpgRepo
+from otel_py_example.resources.database import database_engine
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from python_app1.repository.redis_repo import RedisRepo
+from otel_py_example.repository.redis_repo import RedisRepo
 from opentelemetry.instrumentation.redis import RedisInstrumentor
 
 import pydantic
+
 APP_NAME: str = os.environ.get("APP_NAME", "app")
 EXPOSE_PORT: int = int(os.environ.get("EXPOSE_PORT", 8000))
 OTLP_ENDPOINT: str = os.environ.get("OTLP_ENDPOINT", "http://otel-collector:4317")
@@ -47,7 +48,6 @@ service_name = "fastapi-app"
 tracer = setting_otlp(app, APP_NAME, OTLP_ENDPOINT)
 
 
-
 SQLAlchemyInstrumentor().instrument(
     engine=database_engine.sync_engine,
     tracer_provider=tracer,
@@ -57,14 +57,14 @@ SQLAlchemyInstrumentor().instrument(
 # Instrument redis
 RedisInstrumentor().instrument(tracer_provider=tracer)
 
-class EntitiesHandler:
 
+class EntitiesHandler:
     def __init__(self):
         self.repository = None
 
     async def init_all(self):
         self.repository = EntitiesRepository(database_engine)
-    
+
     async def get_entity_by_id(self, entity_id: str) -> dict | None:
         result = await self.repository.get_entity_by_id(entity_id)
         print(f"\n\nAFDDADAFDF {result=}\n\n")
@@ -78,7 +78,7 @@ class EntitiesHandler:
         for one_data in data:
             result.append({"name": one_data.name, "description": one_data.description, "id": one_data.id})
         return result
-    
+
     async def create_entity(self, name: str, description: str) -> bool:
         async_session = async_sessionmaker(database_engine, expire_on_commit=False)
         async with async_session() as session:
@@ -86,35 +86,34 @@ class EntitiesHandler:
                 session.add(tables.Entity(name=name, description=description))
                 await session.commit()
         return True
-    
+
 
 class EntitiesHandlerAsyncpg:
-    
-        def __init__(self):
-            self.repository = None
-    
-        async def init_all(self):
-            self.repository = EntitiesAsyncpgRepo()
-            await self.repository.init()
-        
-        async def get_entity_by_id(self, entity_id: str) -> dict | None:
-            result = await self.repository.get_entity_by_id(entity_id)
-            if result:
-                return {"name": result.name, "description": result.description, "id": result.id}
-            return None
-    
-        async def get_all_entities(self) -> list[dict]:
-            data = await self.repository.get_all_entities()
-            result = []
-            for one_data in data:
-                result.append({"name": one_data.name, "description": one_data.description, "id": one_data.id})
-            return result
-        
-        async def create_entity(self, name: str, description: str) -> bool:
-            result = await self.repository.create_entity(name, description)
-            print("created entity = ", result)
-            return True
-    
+    def __init__(self):
+        self.repository = None
+
+    async def init_all(self):
+        self.repository = EntitiesAsyncpgRepo()
+        await self.repository.init()
+
+    async def get_entity_by_id(self, entity_id: str) -> dict | None:
+        result = await self.repository.get_entity_by_id(entity_id)
+        if result:
+            return {"name": result.name, "description": result.description, "id": result.id}
+        return None
+
+    async def get_all_entities(self) -> list[dict]:
+        data = await self.repository.get_all_entities()
+        result = []
+        for one_data in data:
+            result.append({"name": one_data.name, "description": one_data.description, "id": one_data.id})
+        return result
+
+    async def create_entity(self, name: str, description: str) -> bool:
+        result = await self.repository.create_entity(name, description)
+        print("created entity = ", result)
+        return True
+
 
 @app.get("/")
 def root_endpoint():
@@ -216,9 +215,7 @@ async def get_entity_by_id(entity_id: str):
 
 
 @app.post("/entities/")
-async def create_entity(
-    income: EntityCreateModel
-):
+async def create_entity(income: EntityCreateModel):
     handler = EntitiesHandler()
     await handler.init_all()
 
@@ -275,19 +272,14 @@ async def delete_redis_value():
     return {"res": res}
 
 
-
 @app.get("/second-app/")
-async def fetch_second_app(
-    entity_id: int
-):
+async def fetch_second_app(entity_id: int):
     res = await fetch_data_service_2(entity_id=entity_id)
     return {"res": res}
 
 
 @app.post("/second-app/")
-async def update_second_app(
-    income: SecondAppPayload
-):
+async def update_second_app(income: SecondAppPayload):
     res = await update_data_service_2(income.entity_id, income.value)
     return {"res": res}
 
@@ -296,6 +288,7 @@ async def update_second_app(
 async def call_error_second_app():
     res = await call_error()
     return {"res": res}
+
 
 if __name__ == "__main__":
     logger.info(f"{service_name} start, listening on port 8000")

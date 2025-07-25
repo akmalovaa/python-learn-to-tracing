@@ -46,6 +46,6 @@ docker compose up -d
 ```
 
 After run docker compose
-- [Python_app1](http://localhost:8000)
+- [Python_app](http://localhost:8000)
 - [Grafana](http://localhost:3000)
 - [Prometheus](http://localhost:9090)

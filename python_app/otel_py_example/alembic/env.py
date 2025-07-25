@@ -1,10 +1,15 @@
+import sys
+import os
 from logging.config import fileConfig
+
+# Add the parent directory to the path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy import URL, create_engine
 
 from alembic import context
-from settings import settings
-from models.tables import METADATA
+from otel_py_example.settings import settings
+from otel_py_example.models.tables import METADATA
 
 
 def get_dsn() -> URL:

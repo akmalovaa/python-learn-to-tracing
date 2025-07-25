@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy.ext import asyncio as sa
 
-from python_app1.settings import Settings, settings
+from otel_py_example.settings import Settings, settings
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def create_sa_engine(settings: Settings) -> sa.AsyncEngine:
     )
 
 
-database_engine = create_sa_engine(settings) 
+database_engine = create_sa_engine(settings)
 
 
 async def create_session(engine: sa.AsyncEngine) -> sa.AsyncSession:

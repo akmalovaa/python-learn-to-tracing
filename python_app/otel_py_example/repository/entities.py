@@ -1,11 +1,11 @@
-
 import sqlalchemy as sa
 
-from python_app1.models import tables
+from otel_py_example.models import tables
 import asyncpg
-from python_app1.settings import settings
+from otel_py_example.settings import settings
 import logging
 from sqlalchemy.ext import asyncio as sa_async
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,13 +19,13 @@ class EntitiesRepository:
             query = sa.select(tables.Entity).where(tables.Entity.id == int(entity_id))
             result_cursor = await conn.execute(query)
             return result_cursor.scalar()
-    
+
     async def get_all_entities(self) -> list[tables.Entity]:
         async with self.engine.connect() as conn:
             query = sa.select(tables.Entity)
             result_cursor = await conn.execute(query)
             return result_cursor.mappings().all()
-    
+
     async def create_entity(self, name: str, description: str) -> tables.Entity:
         entity = tables.Entity(name=name, description=description)
         async with self.engine.connect() as conn:
@@ -52,7 +52,7 @@ class EntitiesAsyncpgRepo:
         query = "SELECT * FROM entities"
         result = await self.conn.fetch(query)
         return [tables.Entity(**one_result) for one_result in result]
-    
+
     async def create_entity(self, name: str, description: str) -> tables.Entity:
         query = "INSERT INTO entities (name, description) VALUES ($1, $2) RETURNING *"
         result = await self.conn.fetchrow(query, name, description)

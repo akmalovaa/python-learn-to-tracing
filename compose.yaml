@@ -1,25 +1,15 @@
 services:
-  python_app1:
-    # image: python:3.12.7-slim-bookworm
-    container_name: app1
+  python_app:
+    container_name: app
     build:
-      dockerfile: Dockerfile_app_1
+      dockerfile: Dockerfile
+      context: python_app
     ports:
       - 8000:8000
     volumes:
-      - .:/srv/
+      - ./python_app:/srv/
     # command: ["tail", "-f", "/dev/null"]
-
-  python_app2:
-    # image: python:3.12.7-slim-bookworm
-    container_name: app2
-    build:
-      dockerfile: Dockerfile_app_2
-    ports:
-      - 8001:8001
-    volumes:
-      - .:/srv/
-    # command: ["tail", "-f", "/dev/null"]
+    # command: ["python", "-m", "python_app"]
 
   otel-collector:
     container_name: otel-collector
@@ -48,7 +38,7 @@ services:
       - tempo
 
   tempo:
-    image: grafana/tempo:2.6.1
+    image: grafana/tempo:2.8.1
     container_name: tempo
     command: ["-config.file=/etc/tempo-local.yaml"]
     ports:
@@ -61,7 +51,7 @@ services:
       - ./configs/tempo/tempo-local.yaml:/etc/tempo-local.yaml
 
   prometheus:
-    image: prom/prometheus:v2.54.1
+    image: prom/prometheus:v3.4.2
     container_name: prometheus
     command:
       - --config.file=/etc/prometheus.yaml
