@@ -41,7 +41,7 @@ const fetchEntities = async () => {
       backendTraceId: lastBackendTraceId.value 
     })
   } catch (err) {
-    error.value = `Ошибка при загрузке данных: ${err.message}`
+    error.value = `Error fetching entities: ${err.message}`
     console.error('Error fetching entities:', err)
   } finally {
     loading.value = false
@@ -50,7 +50,7 @@ const fetchEntities = async () => {
 
 const createEntity = async () => {
   if (!newEntity.value.name.trim()) {
-    error.value = 'Название обязательно для заполнения'
+    error.value = 'Name is required'
     return
   }
 
@@ -133,7 +133,7 @@ const testChain = async () => {
     <main>
       <!-- Тестовые кнопки для трассировки -->
       <div class="test-section">
-        <h3>🧪 Тестовые операции для трассировки</h3>
+        <h3>🧪 Test actions</h3>
         <div class="test-buttons">
           <button @click="testRandomStatus" class="test-btn">🎲 Random Status</button>
           <button @click="testRandomSleep" class="test-btn">😴 Random Sleep</button>
@@ -142,33 +142,33 @@ const testChain = async () => {
       </div>
       <!-- Форма для добавления новой записи -->
       <div class="form-section">
-        <h3>➕ Добавить новую запись</h3>
+        <h3>➕ Add new entity</h3>
         <form @submit.prevent="createEntity" class="entity-form">
           <div class="form-group">
-            <label for="name">Название:</label>
+            <label for="name">Name:</label>
             <input 
               id="name"
               type="text" 
               v-model="newEntity.name" 
-              placeholder="Введите название"
+              placeholder="Enter name"
               required
               :disabled="creating"
             />
           </div>
           
           <div class="form-group">
-            <label for="description">Описание:</label>
+            <label for="description">Description:</label>
             <input 
               id="description"
               type="text" 
               v-model="newEntity.description" 
-              placeholder="Введите описание (необязательно)"
+              placeholder="Enter description (optional)"
               :disabled="creating"
             />
           </div>
           
           <button type="submit" :disabled="creating || !newEntity.name.trim()" class="create-btn">
-            {{ creating ? 'Создаем...' : '➕ Добавить' }}
+            {{ creating ? 'Создаем...' : '➕ Add' }}
           </button>
         </form>
       </div>
@@ -176,7 +176,7 @@ const testChain = async () => {
       <!-- Управление списком -->
       <div class="controls">
         <button @click="fetchEntities" :disabled="loading">
-          {{ loading ? 'Загрузка...' : '🔄 Обновить список' }}
+          {{ loading ? 'Loading...' : '🔄 Refresh List' }}
         </button>
       </div>
 
@@ -185,15 +185,15 @@ const testChain = async () => {
       </div>
 
       <div v-if="loading" class="loading">
-        Загружаем данные...
+        Loading data...
       </div>
 
       <div v-else-if="entities.length === 0 && !error" class="empty-state">
-        📭 Список пуст
+        📭 The list is empty
       </div>
 
       <div v-else class="entities-list">
-        <h2>📋 Список ({{ entities.length }})</h2>
+        <h2>📋 List ({{ entities.length }})</h2>
         <div v-for="entity in entities" :key="entity.id" class="entity-item">
           <div class="entity-id">#{{ entity.id }}</div>
           <div class="entity-name">{{ entity.name }}</div>
@@ -201,7 +201,7 @@ const testChain = async () => {
             {{ entity.description }}
           </div>
           <div class="entity-description" v-else>
-            <em>Описание отсутствует</em>
+            <em>Description is missing</em>
           </div>
         </div>
       </div>
