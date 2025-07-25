@@ -1,13 +1,14 @@
 # Python tracing
 
 Repository for experiments to understand tracing: 
-- Python 
-- OpenTelemetry 
-- Tempo 
+- Python (FastAPI, uv)
+- Frontend (Vue.js)
+- OpenTelemetry collector
+- Tempo
 - Grafana
 - Prometheus
 
-![scheme](./images/scheme2.excalidraw.png)
+![scheme](./images/scheme.png)
 
 ### Useful materials
 **main:**
