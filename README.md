@@ -52,9 +52,15 @@ After run docker compose
 
 test alembic migrations
 ```
+#local
 uv run alembic -c otel_py_example/alembic.ini upgrade head
-
+# docker
 chmod +x scripts/alembic.sh && ./scripts/alembic.sh current
 ./scripts/alembic.sh upgrade head
+```
+
+dev
+```
+docker-compose down && docker-compose up -d --build
 ```
 

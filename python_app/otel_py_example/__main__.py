@@ -9,6 +9,7 @@ from typing import Any, Dict, Optional
 import httpx
 import uvicorn
 from fastapi import FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from opentelemetry.propagate import inject
 
@@ -43,6 +44,15 @@ logger.add(
 
 app = FastAPI()
 service_name = "fastapi-app"
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 # Setting OpenTelemetry exporter
 tracer = setting_otlp(app, APP_NAME, OTLP_ENDPOINT)

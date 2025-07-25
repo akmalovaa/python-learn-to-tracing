@@ -6,10 +6,22 @@ services:
       context: python_app
     ports:
       - 8000:8000
-    volumes:
-      - ./python_app:/srv/
+    depends_on:
+      - db
+    # volumes:
+    #   - ./python_app:/app/
     # command: ["tail", "-f", "/dev/null"]
     # command: ["python", "-m", "python_app"]
+
+  frontend:
+    container_name: frontend
+    build:
+      dockerfile: Dockerfile
+      context: front
+    ports:
+      - 80:80
+    depends_on:
+      - python_app
 
   otel-collector:
     container_name: otel-collector
