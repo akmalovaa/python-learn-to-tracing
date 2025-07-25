@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, Response
+from fastapi import FastAPI, Response, Request
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from opentelemetry.propagate import inject
@@ -16,6 +16,7 @@ from opentelemetry.propagate import inject
 from otel_py_example.utils import setting_otlp
 from otel_py_example.models import tables
 from otel_py_example.clients import fetch_data_service_2, update_data_service_2, call_error
+from otel_py_example.middleware import TraceIDMiddleware, get_trace_id_from_request, get_current_trace_id
 
 from otel_py_example.repository.entities import EntitiesRepository, EntitiesAsyncpgRepo
 from otel_py_example.resources.database import database_engine, sync_database_engine
@@ -46,6 +47,13 @@ app = FastAPI()
 service_name = "fastapi-app"
 
 # Add CORS middleware
+# Setting OpenTelemetry exporter
+tracer = setting_otlp(app, APP_NAME, OTLP_ENDPOINT)
+
+# Add TraceID middleware for handling frontend trace_id (должен быть перед CORS)
+app.add_middleware(TraceIDMiddleware)
+
+# Add CORS middleware (должен быть последним)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins
@@ -53,9 +61,6 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
-
-# Setting OpenTelemetry exporter
-tracer = setting_otlp(app, APP_NAME, OTLP_ENDPOINT)
 
 
 SQLAlchemyInstrumentor().instrument(
@@ -126,8 +131,17 @@ class EntitiesHandlerAsyncpg:
 
 
 @app.get("/")
-def root_endpoint():
-    return {"message": "Hello World"}
+def root_endpoint(request: Request):
+    # Получаем trace_id из фронтенда
+    frontend_trace_id = get_trace_id_from_request(request)
+    current_trace_id = get_current_trace_id()
+
+    logger.info(f"Root endpoint called - Frontend trace_id: {frontend_trace_id}, Backend trace_id: {current_trace_id}")
+
+    return {
+        "message": "Hello World",
+        "trace_info": {"frontend_trace_id": frontend_trace_id, "backend_trace_id": current_trace_id},
+    }
 
 
 @app.get("/items/{item_id}")
@@ -209,11 +223,20 @@ class SecondAppPayload(pydantic.BaseModel):
 
 
 @app.get("/entities/")
-async def get_all_entities():
+async def get_all_entities(request: Request):
+    # Получаем trace_id из фронтенда
+    frontend_trace_id = get_trace_id_from_request(request)
+    current_trace_id = get_current_trace_id()
+
+    logger.info(f"Getting all entities - Frontend trace_id: {frontend_trace_id}, Backend trace_id: {current_trace_id}")
+
     handler = EntitiesHandler()
     await handler.init_all()
     entities = await handler.get_all_entities()
-    return {"entities": entities}
+    return {
+        "entities": entities,
+        "trace_info": {"frontend_trace_id": frontend_trace_id, "backend_trace_id": current_trace_id},
+    }
 
 
 @app.get("/entities/{entity_id}/")
@@ -225,12 +248,20 @@ async def get_entity_by_id(entity_id: str):
 
 
 @app.post("/entities/")
-async def create_entity(income: EntityCreateModel):
+async def create_entity(income: EntityCreateModel, request: Request):
+    # Получаем trace_id из фронтенда
+    frontend_trace_id = get_trace_id_from_request(request)
+    current_trace_id = get_current_trace_id()
+
+    logger.info(
+        f"Creating entity '{income.name}' - Frontend trace_id: {frontend_trace_id}, Backend trace_id: {current_trace_id}"
+    )
+
     handler = EntitiesHandler()
     await handler.init_all()
 
     res = await handler.create_entity(income.name, income.description)
-    return {"entity": res}
+    return {"entity": res, "trace_info": {"frontend_trace_id": frontend_trace_id, "backend_trace_id": current_trace_id}}
 
 
 @app.get("/entities-asyncpg/")

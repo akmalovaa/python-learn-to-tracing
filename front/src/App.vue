@@ -1,10 +1,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { entitiesAPI } from './utils/api.js'
+import { getOrCreateSessionTraceId, logTraceInfo } from './utils/tracing.js'
 
 const entities = ref([])
 const loading = ref(false)
 const error = ref('')
+const sessionTraceId = ref('')
+const lastBackendTraceId = ref('')
 
 // Форма для создания новой entity
 const newEntity = ref({
@@ -13,15 +16,30 @@ const newEntity = ref({
 })
 const creating = ref(false)
 
-const API_BASE_URL = 'http://localhost:8000'
+// Инициализация session trace ID
+onMounted(() => {
+  sessionTraceId.value = getOrCreateSessionTraceId()
+  logTraceInfo('APP_MOUNTED', sessionTraceId.value, { component: 'App.vue' })
+  fetchEntities()
+})
 
 const fetchEntities = async () => {
   loading.value = true
   error.value = ''
   
   try {
-    const response = await axios.get(`${API_BASE_URL}/entities/`)
-    entities.value = response.data.entities  // API возвращает {entities: [...]}
+    const result = await entitiesAPI.getAll()
+    entities.value = result.entities
+    
+    // Сохраняем информацию о трассировке для отображения
+    if (result.trace_info) {
+      lastBackendTraceId.value = result.trace_info.backend_trace_id
+    }
+    
+    logTraceInfo('ENTITIES_FETCHED', sessionTraceId.value, { 
+      count: entities.value.length,
+      backendTraceId: lastBackendTraceId.value 
+    })
   } catch (err) {
     error.value = `Ошибка при загрузке данных: ${err.message}`
     console.error('Error fetching entities:', err)
@@ -40,9 +58,19 @@ const createEntity = async () => {
   error.value = ''
   
   try {
-    await axios.post(`${API_BASE_URL}/entities/`, {
+    const result = await entitiesAPI.create({
       name: newEntity.value.name.trim(),
       description: newEntity.value.description.trim()
+    })
+    
+    // Сохраняем информацию о трассировке
+    if (result.trace_info) {
+      lastBackendTraceId.value = result.trace_info.backend_trace_id
+    }
+    
+    logTraceInfo('ENTITY_CREATED', sessionTraceId.value, {
+      entityName: newEntity.value.name,
+      backendTraceId: lastBackendTraceId.value
     })
     
     // Очищаем форму
@@ -59,22 +87,59 @@ const createEntity = async () => {
   }
 }
 
+// Тестовые функции для демонстрации трассировки
+const testRandomStatus = async () => {
+  try {
+    await entitiesAPI.testRandomStatus()
+  } catch (err) {
+    console.error('Random status test failed:', err)
+  }
+}
+
+const testRandomSleep = async () => {
+  try {
+    await entitiesAPI.testRandomSleep()
+  } catch (err) {
+    console.error('Random sleep test failed:', err)
+  }
+}
+
+const testChain = async () => {
+  try {
+    await entitiesAPI.testChain()
+  } catch (err) {
+    console.error('Chain test failed:', err)
+  }
+}
+
 // Загружаем данные при монтировании компонента
-onMounted(() => {
-  fetchEntities()
-})
 </script>
 
 <template>
   <div class="container">
     <header>
       <h1>🔍 OpenTelemetry Tracing Example</h1>
-      <p>FastAPI simple get/entities</p>
-      <p><a href="http://localhost:8000/docs" target="_blank">FastAPI docs</a></p>
-      <p><a href="http://localhost:3000" target="_blank">Grafana</a></p>
+      <p>FastAPI + Vue.js с передачей trace_id</p>
+      <div class="trace-info">
+        <p><strong>Session Trace ID:</strong> <code>{{ sessionTraceId }}</code></p>
+        <p v-if="lastBackendTraceId"><strong>Last Backend Trace ID:</strong> <code>{{ lastBackendTraceId }}</code></p>
+      </div>
+      <div class="links">
+        <p><a href="http://localhost:8000/docs" target="_blank">📖 FastAPI docs</a></p>
+        <p><a href="http://localhost:3000" target="_blank">📊 Grafana</a></p>
+      </div>
     </header>
 
     <main>
+      <!-- Тестовые кнопки для трассировки -->
+      <div class="test-section">
+        <h3>🧪 Тестовые операции для трассировки</h3>
+        <div class="test-buttons">
+          <button @click="testRandomStatus" class="test-btn">🎲 Random Status</button>
+          <button @click="testRandomSleep" class="test-btn">😴 Random Sleep</button>
+          <button @click="testChain" class="test-btn">🔗 Chain Request</button>
+        </div>
+      </div>
       <!-- Форма для добавления новой записи -->
       <div class="form-section">
         <h3>➕ Добавить новую запись</h3>
@@ -170,6 +235,71 @@ h2 {
 h3 {
   color: #34495e;
   margin-bottom: 15px;
+}
+
+.trace-info {
+  background-color: #e8f4fd;
+  border: 1px solid #bee5eb;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 15px 0;
+  font-family: 'Courier New', monospace;
+}
+
+.trace-info code {
+  background-color: #f8f9fa;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid #dee2e6;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.links {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.links a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.links a:hover {
+  text-decoration: underline;
+}
+
+.test-section {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.test-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.test-btn {
+  background-color: #fd79a8;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.test-btn:hover {
+  background-color: #e84393;
 }
 
 .form-section {
