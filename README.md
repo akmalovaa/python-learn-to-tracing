@@ -7,7 +7,7 @@ Repository for experiments to understand tracing:
 - Grafana
 - Prometheus
 
-![scheme](./images/scheme.excalidraw.png)
+![scheme](./images/scheme2.excalidraw.png)
 
 ### Useful materials
 **main:**
